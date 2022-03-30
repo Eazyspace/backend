@@ -2,13 +2,11 @@ package model
 
 import (
 	"time"
-
-	"gorm.io/gorm"
 )
 
 type User struct {
-	gorm.Model
-	UserCode    string    `json:"userCode"`
+	UserID      int64     `json:"userId"`
+	OrgID       int64     `json:"orgId"`
 	DOB         time.Time `json:"dob,omitempty"`
 	Role        int64     `json:"role,omitempty"`
 	Faculty     string    `json:"faculty,omitempty"`

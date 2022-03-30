@@ -2,13 +2,10 @@ package model
 
 import (
 	"time"
-
-	"gorm.io/gorm"
 )
 
 type Token struct {
-	gorm.Model
-	UserCode    string    `json:"userCode"`
+	UserID      int64     `json:"userId" gorm:"primaryKey"`
 	ExpireTime  time.Time `json:"expireTime,omitempty"`
 	TokenString string    `json:"tokenString,omitempty"`
 }

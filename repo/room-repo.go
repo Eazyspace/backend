@@ -23,10 +23,8 @@ func NewRoomRepo(db *gorm.DB) *RoomRepository {
 	}
 }
 
-var roomRepo = &RoomRepository{}
-
 func (repo *RoomRepository) Read(room *model.Room) ([]model.Room, error) {
-	var foundRoom []model.Room 
+	var foundRoom []model.Room
 
 	// select * from Room where Room.room_code = room.room_code
 	result := repo.DB.Where(room).Find(&foundRoom)

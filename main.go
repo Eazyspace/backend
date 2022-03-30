@@ -17,8 +17,15 @@ import (
 
 func InitRoomController(db *gorm.DB) *controller.RoomController {
 	roomRepo := repo.NewRoomRepo(db)
-	roomService := service.NewRoomService(roomRepo)
+	floorRepo := repo.NewFloorRepo(db)
+	roomService := service.NewRoomService(roomRepo, floorRepo)
 	return controller.NewRoomController(roomService)
+}
+
+func InitFloorController(db *gorm.DB) *controller.FloorController {
+	floorRepo := repo.NewFloorRepo(db)
+	floorService := service.NewFloorService(floorRepo)
+	return controller.NewFloorController(floorService)
 }
 
 func InitRootController(db *gorm.DB) *controller.RootController {
@@ -57,11 +64,12 @@ func main() {
 	// Create controllers
 	rootController := InitRootController(AppDB)
 	roomController := InitRoomController(AppDB)
+	floorController := InitFloorController(AppDB)
 
 	// Create groups
 	server.SetGroup("/", rootController.InitRouting)
 	server.SetGroup("/room", roomController.InitRouting)
-
+	server.SetGroup("/floor", floorController.InitRouting)
 	// InitRoomRouting(roomController, *server)
 	server.Start(PORT)
 

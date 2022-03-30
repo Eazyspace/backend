@@ -2,12 +2,10 @@ package model
 
 import (
 	"time"
-
-	"gorm.io/gorm"
 )
 
 type Request struct {
-	gorm.Model
+	RequestID      int64     `json:"requestId" gorm:"primaryKey"`
 	UserID         int64     `json:"userID"`
 	RoomID         int64     `json:"roomID"`
 	StartTime      time.Time `json:"startTime,omitempty"`

@@ -11,46 +11,46 @@ import (
 	"github.com/labstack/echo/v4"
 )
 
-var roomErrorPath string = "controller/room.go: "
+var floorErrorPath string = "controller/floor.go: "
 
-type RoomController struct {
-	RoomService *service.RoomService
+type FloorController struct {
+	FloorService *service.FloorService
 }
 
-func NewRoomController(roomService *service.RoomService) *RoomController {
-	return &RoomController{RoomService: roomService}
+func NewFloorController(floorService *service.FloorService) *FloorController {
+	return &FloorController{FloorService: floorService}
 }
 
-func (c *RoomController) InitRouting(g *echo.Group) error {
-	g.GET("", c.GetRoom)
+func (c *FloorController) InitRouting(g *echo.Group) error {
+	g.GET("", c.GetFloor)
 	g.GET("/test", c.Test)
-	g.POST("", c.CreateRoom)
+	g.POST("", c.CreateFloor)
 	return nil
 }
 
-func (c *RoomController) Test(ctx echo.Context) error {
+func (c *FloorController) Test(ctx echo.Context) error {
 	return api.Respond(ctx, &enum.APIResponse{
 		Status:  enum.APIStatus.Ok,
 		Data:    false,
-		Message: "Room: OK",
+		Message: "Floor: OK",
 	})
 }
 
-func (c *RoomController) CreateRoom(ctx echo.Context) error {
+func (c *FloorController) CreateFloor(ctx echo.Context) error {
 
-	var input model.Room
+	var input model.Floor
 
 	err := api.GetContent(ctx, &input)
 
 	if err != nil {
 		api.Respond(ctx, &enum.APIResponse{
 			Status:  enum.APIStatus.Error,
-			Message: fmt.Sprintf("%s: %s", roomErrorPath, err.Error()),
+			Message: fmt.Sprintf("%s: %s", floorErrorPath, err.Error()),
 			Data:    false,
 		})
 	}
 
-	var datas []model.Room
+	var datas []model.Floor
 	// if err != nil {
 	// 	api.Respond(ctx, &enum.APIResponse{
 	// 		Status:  enum.APIStatus.Error,
@@ -60,15 +60,15 @@ func (c *RoomController) CreateRoom(ctx echo.Context) error {
 	// }
 
 	// createdRoom, err := c.RoomService.Create(&model.Room{RoomCode: "TEST-001", RoomName: "Room Test", MaxCapacity: 1000})
-	createdRoom, err := c.RoomService.Create(&input)
+	createdFloor, err := c.FloorService.Create(&input)
 	if err != nil {
 		api.Respond(ctx, &enum.APIResponse{
 			Status:  enum.APIStatus.Error,
-			Message: fmt.Sprintf("%s: %s", roomErrorPath, err.Error()),
+			Message: fmt.Sprintf("%s: %s", floorErrorPath, err.Error()),
 			Data:    false,
 		})
 	}
-	datas = append(datas, *createdRoom)
+	datas = append(datas, *createdFloor)
 	return api.Respond(ctx, &enum.APIResponse{
 		Status:  enum.APIStatus.Ok,
 		Message: "Created successfully",
@@ -78,21 +78,24 @@ func (c *RoomController) CreateRoom(ctx echo.Context) error {
 }
 
 // controller handles input & params, (maybe) validate params
-func (c *RoomController) GetRoom(ctx echo.Context) error {
-	var input model.Room
-	var datas []model.Room
+func (c *FloorController) GetFloor(ctx echo.Context) error {
+	var input model.Floor
+	var datas []model.Floor
 
-	param := ctx.QueryParams().Get("q")
+	param := ctx.QueryParams().Get("id")
 	if param == "" {
 		param = "{}"
+	} else {
+		param = "{\"floorId\":" + param + "}"
 	}
+
 	// convert string -> struct object
 	paramErr := json.Unmarshal([]byte(param), &input)
 
 	if paramErr != nil {
 		return api.Respond(ctx, &enum.APIResponse{
 			Status:  enum.APIStatus.Error,
-			Message: fmt.Sprintf("room_controller/RoomController: paramErr %s", paramErr),
+			Message: fmt.Sprintf("floor_controller/FloorController: paramErr %s", paramErr),
 		})
 	}
 
@@ -102,12 +105,19 @@ func (c *RoomController) GetRoom(ctx echo.Context) error {
 	// 	Data:    []model.Room{input},
 	// })
 
-	datas, err := c.RoomService.Read(&input)
+	datas, err := c.FloorService.Read(&input)
 
 	if err != nil {
-		api.Respond(ctx, &enum.APIResponse{
+		return api.Respond(ctx, &enum.APIResponse{
 			Status:  enum.APIStatus.Error,
-			Message: fmt.Sprintf("%s: %s", roomErrorPath, err.Error()),
+			Message: fmt.Sprintf("%s: %s", floorErrorPath, err.Error()),
+		})
+	}
+
+	if len(datas) == 0 {
+		return api.Respond(ctx, &enum.APIResponse{
+			Status:  enum.APIStatus.NotFound,
+			Message: fmt.Sprintf("No floor with id %s is found", ctx.QueryParams().Get("id")),
 		})
 	}
 
