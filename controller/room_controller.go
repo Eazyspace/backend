@@ -3,7 +3,6 @@ package controller
 import (
 	"encoding/json"
 	"fmt"
-	"strconv"
 
 	"github.com/Eazyspace/api"
 	"github.com/Eazyspace/enum"
@@ -26,6 +25,7 @@ func (c *RoomController) InitRouting(g *echo.Group) error {
 	g.GET("", c.GetRoom)
 	g.GET("/test", c.Test)
 	g.POST("", c.CreateRoom)
+	g.GET("/book", c.BookRoom)
 	return nil
 }
 
@@ -83,30 +83,12 @@ func (c *RoomController) GetRoom(ctx echo.Context) error {
 	var input model.Room
 	var datas []model.Room
 
-	jsonParams := make(map[string]interface{})
-	if ctx.QueryParams().Get("id") != "" {
-		id, err := strconv.Atoi(ctx.QueryParams().Get("id"))
-		if err != nil {
-			return api.Respond(ctx, &enum.APIResponse{
-				Status:  enum.APIStatus.Invalid,
-				Message: fmt.Sprintf("room_controller/RoomController: paramErr %s", err),
-			})
-		}
-		jsonParams["roomId"] = id
+	param := ctx.QueryParams().Get("q")
+	if param == "" {
+		param = "{}"
 	}
-	if ctx.QueryParams().Get("floorId") != "" {
-		id, err := strconv.Atoi(ctx.QueryParams().Get("floorId"))
-		if err != nil {
-			return api.Respond(ctx, &enum.APIResponse{
-				Status:  enum.APIStatus.Invalid,
-				Message: fmt.Sprintf("room_controller/RoomController: paramErr %s", err),
-			})
-		}
-		jsonParams["floorId"] = id
-	}
-	// convert map to string
-	jsonString, _ := json.Marshal(jsonParams)
-	paramErr := json.Unmarshal([]byte(jsonString), &input)
+
+	paramErr := json.Unmarshal([]byte(param), &input)
 
 	if paramErr != nil {
 		return api.Respond(ctx, &enum.APIResponse{
@@ -142,5 +124,30 @@ func (c *RoomController) GetRoom(ctx echo.Context) error {
 		Status:  enum.APIStatus.Ok,
 		Message: "OK",
 		Data:    datas,
+	})
+}
+
+func (c *RoomController) BookRoom(ctx echo.Context) error {
+	var input model.Room
+	//var datas []model.Room
+
+	param := ctx.QueryParams().Get("q")
+	if param == "" {
+		param = "{}"
+	}
+
+	paramErr := json.Unmarshal([]byte(param), &input)
+
+	if paramErr != nil {
+		return api.Respond(ctx, &enum.APIResponse{
+			Status:  enum.APIStatus.Error,
+			Message: fmt.Sprintf("room_controller/RoomController: paramErr %s", paramErr),
+		})
+	}
+
+	return api.Respond(ctx, &enum.APIResponse{
+		Status:  enum.APIStatus.Ok,
+		Message: "OK",
+		Data:    []model.Room{input},
 	})
 }

@@ -82,11 +82,9 @@ func (c *FloorController) GetFloor(ctx echo.Context) error {
 	var input model.Floor
 	var datas []model.Floor
 
-	param := ctx.QueryParams().Get("id")
+	param := ctx.QueryParams().Get("q")
 	if param == "" {
 		param = "{}"
-	} else {
-		param = "{\"floorId\":" + param + "}"
 	}
 
 	// convert string -> struct object

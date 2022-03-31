@@ -22,3 +22,7 @@ func (s *RoomService) Read(room *model.Room) ([]model.Room, error) {
 func (s *RoomService) Create(room *model.Room) (*model.Room, error) {
 	return s.roomRepository.Create(room)
 }
+
+func (s *RoomService) Book(request *model.Request) (*model.Request, error) {
+	return nil, nil
+}
