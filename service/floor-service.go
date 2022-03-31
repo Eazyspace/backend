@@ -13,10 +13,6 @@ func NewFloorService(floorRepository *repo.FloorRepository) *FloorService {
 	return &FloorService{floorRepository: floorRepository}
 }
 
-func (s *FloorService) ReadAll() ([]model.Floor, error) {
-	return s.floorRepository.ReadAll()
-}
-
 func (s *FloorService) Read(floor *model.Floor) ([]model.Floor, error) {
 	return s.floorRepository.Read(floor)
 }

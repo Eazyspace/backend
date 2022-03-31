@@ -1,7 +1,7 @@
 package model
 
 type Organization struct {
-	OrgID           int64  `json:"orgId" gorm:"primaryKey"`
+	OrganizationID  int64  `json:"organizationId" gorm:"primaryKey"`
 	Name            string `json:"name,omitempty"`
 	Email           string `json:"email,omitempty"`
 	PhoneNumber     string `json:"phoneNumber,omitempty"`
