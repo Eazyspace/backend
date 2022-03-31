@@ -28,3 +28,4 @@ vendor
 .vscode
 
 .env
+route.rest
