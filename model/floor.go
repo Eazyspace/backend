@@ -1,12 +1,7 @@
 package model
 
-import (
-	"gorm.io/gorm"
-)
-
 type Floor struct {
-	gorm.Model
-	FloorCode   string `json:"floorCode"`
+	FloorID     int64  `json:"floorId" gorm:"primaryKey"`
 	FloorName   string `json:"floorName,omitempty"`
 	Description string `json:"description,omitempty"`
 }

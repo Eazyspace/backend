@@ -3,6 +3,7 @@ package controller
 import (
 	"encoding/json"
 	"fmt"
+	"strconv"
 
 	"github.com/Eazyspace/api"
 	"github.com/Eazyspace/enum"
@@ -11,7 +12,7 @@ import (
 	"github.com/labstack/echo/v4"
 )
 
-var errorPath string = "controller/room.go: "
+var roomErrorPath string = "controller/room.go: "
 
 type RoomController struct {
 	RoomService *service.RoomService
@@ -45,7 +46,7 @@ func (c *RoomController) CreateRoom(ctx echo.Context) error {
 	if err != nil {
 		api.Respond(ctx, &enum.APIResponse{
 			Status:  enum.APIStatus.Error,
-			Message: fmt.Sprintf("%s: %s", errorPath, err.Error()),
+			Message: fmt.Sprintf("%s: %s", roomErrorPath, err.Error()),
 			Data:    false,
 		})
 	}
@@ -61,7 +62,13 @@ func (c *RoomController) CreateRoom(ctx echo.Context) error {
 
 	// createdRoom, err := c.RoomService.Create(&model.Room{RoomCode: "TEST-001", RoomName: "Room Test", MaxCapacity: 1000})
 	createdRoom, err := c.RoomService.Create(&input)
-
+	if err != nil {
+		api.Respond(ctx, &enum.APIResponse{
+			Status:  enum.APIStatus.Error,
+			Message: fmt.Sprintf("%s: %s", roomErrorPath, err.Error()),
+			Data:    false,
+		})
+	}
 	datas = append(datas, *createdRoom)
 	return api.Respond(ctx, &enum.APIResponse{
 		Status:  enum.APIStatus.Ok,
@@ -76,12 +83,30 @@ func (c *RoomController) GetRoom(ctx echo.Context) error {
 	var input model.Room
 	var datas []model.Room
 
-	param := ctx.QueryParams().Get("q")
-	if param == "" {
-		param = "{}"
+	jsonParams := make(map[string]interface{})
+	if ctx.QueryParams().Get("id") != "" {
+		id, err := strconv.Atoi(ctx.QueryParams().Get("id"))
+		if err != nil {
+			return api.Respond(ctx, &enum.APIResponse{
+				Status:  enum.APIStatus.Invalid,
+				Message: fmt.Sprintf("room_controller/RoomController: paramErr %s", err),
+			})
+		}
+		jsonParams["roomId"] = id
 	}
-	// convert string -> struct object
-	paramErr := json.Unmarshal([]byte(param), &input)
+	if ctx.QueryParams().Get("floorId") != "" {
+		id, err := strconv.Atoi(ctx.QueryParams().Get("floorId"))
+		if err != nil {
+			return api.Respond(ctx, &enum.APIResponse{
+				Status:  enum.APIStatus.Invalid,
+				Message: fmt.Sprintf("room_controller/RoomController: paramErr %s", err),
+			})
+		}
+		jsonParams["floorId"] = id
+	}
+	// convert map to string
+	jsonString, _ := json.Marshal(jsonParams)
+	paramErr := json.Unmarshal([]byte(jsonString), &input)
 
 	if paramErr != nil {
 		return api.Respond(ctx, &enum.APIResponse{
@@ -101,7 +126,15 @@ func (c *RoomController) GetRoom(ctx echo.Context) error {
 	if err != nil {
 		api.Respond(ctx, &enum.APIResponse{
 			Status:  enum.APIStatus.Error,
-			Message: fmt.Sprintf("%s: %s", errorPath, err.Error()),
+			Message: fmt.Sprintf("%s: %s", roomErrorPath, err.Error()),
+		})
+	}
+
+	if len(datas) == 0 {
+		return api.Respond(ctx, &enum.APIResponse{
+			Status: enum.APIStatus.NotFound,
+			Message: fmt.Sprintf("No room with id %s or floorId %s is found",
+				ctx.QueryParams().Get("id"), ctx.QueryParams().Get("floorId")),
 		})
 	}
 
