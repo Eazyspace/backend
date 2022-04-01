@@ -130,8 +130,7 @@ func (c *RoomController) GetRoom(ctx echo.Context) error {
 func (c *RoomController) BookRoom(ctx echo.Context) error {
 	var input model.Request
 
-	json_map := make(map[string]interface{})
-	err := json.NewDecoder(ctx.Request().Body).Decode(&json_map)
+	err := api.GetContent(ctx, &input)
 
 	if err != nil {
 		return api.Respond(ctx, &enum.APIResponse{
@@ -141,25 +140,14 @@ func (c *RoomController) BookRoom(ctx echo.Context) error {
 		})
 	}
 
-	if json_map["userId"] == nil ||
-		json_map["roomId"] == nil ||
-		json_map["startTime"] == nil ||
-		json_map["endTime"] == nil ||
-		json_map["description"] == nil {
+	if input.RoomID == 0 ||
+		input.UserID == 0 ||
+		input.StartTime.IsZero() ||
+		input.EndTime.IsZero() ||
+		input.Description == "" {
 		return api.Respond(ctx, &enum.APIResponse{
 			Status:  enum.APIStatus.Forbidden,
 			Message: "Missing param (userId, floorId, startTime, endTime, description)",
-			Data:    false,
-		})
-	}
-
-	jsonString, _ := json.Marshal(json_map)
-	contentErr := json.Unmarshal([]byte(jsonString), &input)
-
-	if contentErr != nil {
-		return api.Respond(ctx, &enum.APIResponse{
-			Status:  enum.APIStatus.Error,
-			Message: fmt.Sprintf("room_controller/RoomController: paramErr %s", contentErr),
 			Data:    false,
 		})
 	}
@@ -172,11 +160,11 @@ func (c *RoomController) BookRoom(ctx echo.Context) error {
 	// 	Data:    []model.Request{input},
 	// })
 
-	createdRequest, err := c.RoomService.Book(&input)
-	if err != nil {
-		api.Respond(ctx, &enum.APIResponse{
+	createdRequest, errString := c.RoomService.Book(&input)
+	if errString != nil {
+		return api.Respond(ctx, &enum.APIResponse{
 			Status:  enum.APIStatus.Error,
-			Message: fmt.Sprintf("%s: %s", roomErrorPath, err.Error()),
+			Message: fmt.Sprintf("%s: %s", roomErrorPath, errString),
 			Data:    false,
 		})
 	}
@@ -184,7 +172,7 @@ func (c *RoomController) BookRoom(ctx echo.Context) error {
 	datas = append(datas, *createdRequest)
 	return api.Respond(ctx, &enum.APIResponse{
 		Status:  enum.APIStatus.Ok,
-		Message: "Created successfully",
+		Message: "Booking request successfully",
 		Data:    datas,
 	})
 }

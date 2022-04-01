@@ -11,7 +11,7 @@ type Request struct {
 	RoomID         int64     `json:"roomId"`
 	Room           Room      `json:"-"`
 	StartTime      time.Time `json:"startTime,omitempty"`
-	Endtime        time.Time `json:"endTime,omitempty"`
+	EndTime        time.Time `json:"endTime,omitempty"`
 	NumberOfPeople int64     `json:"numberOfPeople,omitempty"`
 	Description    string    `json:"description"`
 	Status         int64     `json:"status"`
