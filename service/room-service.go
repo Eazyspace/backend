@@ -6,13 +6,15 @@ import (
 )
 
 type RoomService struct {
-	roomRepository  *repo.RoomRepository
-	floorRepostiory *repo.FloorRepository
+	roomRepository    *repo.RoomRepository
+	floorRepostiory   *repo.FloorRepository
+	requestRepository *repo.RequestRepository
 }
 
 func NewRoomService(roomRepository *repo.RoomRepository,
-	floorRepostiory *repo.FloorRepository) *RoomService {
-	return &RoomService{roomRepository: roomRepository, floorRepostiory: floorRepostiory}
+	floorRepostiory *repo.FloorRepository,
+	requestRepository *repo.RequestRepository) *RoomService {
+	return &RoomService{roomRepository: roomRepository, floorRepostiory: floorRepostiory, requestRepository: requestRepository}
 }
 
 func (s *RoomService) Read(room *model.Room) ([]model.Room, error) {
@@ -24,5 +26,5 @@ func (s *RoomService) Create(room *model.Room) (*model.Room, error) {
 }
 
 func (s *RoomService) Book(request *model.Request) (*model.Request, error) {
-	return nil, nil
+	return s.requestRepository.Create(request)
 }

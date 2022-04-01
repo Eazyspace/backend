@@ -18,7 +18,8 @@ import (
 func InitRoomController(db *gorm.DB) *controller.RoomController {
 	roomRepo := repo.NewRoomRepo(db)
 	floorRepo := repo.NewFloorRepo(db)
-	roomService := service.NewRoomService(roomRepo, floorRepo)
+	requestRepo := repo.NewRequestRepo(db)
+	roomService := service.NewRoomService(roomRepo, floorRepo, requestRepo)
 	return controller.NewRoomController(roomService)
 }
 

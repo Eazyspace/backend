@@ -9,5 +9,5 @@ type Room struct {
 	RoomWidth   int64  `json:"roomWidth,omitempty"`
 	MaxCapacity int64  `json:"maxCapacity,omitempty"`
 	Description string `json:"description,omitempty"`
-	Status      string `json:"status"`
+	Status      int64  `json:"status"`
 }

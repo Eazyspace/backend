@@ -13,7 +13,7 @@ type User struct {
 	Faculty        string    `json:"faculty,omitempty"`
 	Email          string    `json:"email,omitempty"`
 	PhoneNumber    string    `json:"phoneNumber,omitempty"`
-	AcademicID     string    `json:"academicID,omitempty"`
+	AcademicID     string    `json:"academicId,omitempty"`
 	Password       string    `json:"active,omitempty"`
-	Activated      bool      `json:"activated,omitempty"`
+	IsActivated    bool      `json:"isActivated,omitempty"`
 }

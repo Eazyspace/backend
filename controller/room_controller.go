@@ -25,7 +25,7 @@ func (c *RoomController) InitRouting(g *echo.Group) error {
 	g.GET("", c.GetRoom)
 	g.GET("/test", c.Test)
 	g.POST("", c.CreateRoom)
-	g.GET("/book", c.BookRoom)
+	g.POST("/book", c.BookRoom)
 	return nil
 }
 
@@ -44,7 +44,7 @@ func (c *RoomController) CreateRoom(ctx echo.Context) error {
 	err := api.GetContent(ctx, &input)
 
 	if err != nil {
-		api.Respond(ctx, &enum.APIResponse{
+		return api.Respond(ctx, &enum.APIResponse{
 			Status:  enum.APIStatus.Error,
 			Message: fmt.Sprintf("%s: %s", roomErrorPath, err.Error()),
 			Data:    false,
@@ -63,7 +63,7 @@ func (c *RoomController) CreateRoom(ctx echo.Context) error {
 	// createdRoom, err := c.RoomService.Create(&model.Room{RoomCode: "TEST-001", RoomName: "Room Test", MaxCapacity: 1000})
 	createdRoom, err := c.RoomService.Create(&input)
 	if err != nil {
-		api.Respond(ctx, &enum.APIResponse{
+		return api.Respond(ctx, &enum.APIResponse{
 			Status:  enum.APIStatus.Error,
 			Message: fmt.Sprintf("%s: %s", roomErrorPath, err.Error()),
 			Data:    false,
@@ -128,26 +128,63 @@ func (c *RoomController) GetRoom(ctx echo.Context) error {
 }
 
 func (c *RoomController) BookRoom(ctx echo.Context) error {
-	var input model.Room
-	//var datas []model.Room
+	var input model.Request
 
-	param := ctx.QueryParams().Get("q")
-	if param == "" {
-		param = "{}"
-	}
+	json_map := make(map[string]interface{})
+	err := json.NewDecoder(ctx.Request().Body).Decode(&json_map)
 
-	paramErr := json.Unmarshal([]byte(param), &input)
-
-	if paramErr != nil {
+	if err != nil {
 		return api.Respond(ctx, &enum.APIResponse{
 			Status:  enum.APIStatus.Error,
-			Message: fmt.Sprintf("room_controller/RoomController: paramErr %s", paramErr),
+			Message: fmt.Sprintf("%s: %s", roomErrorPath, err.Error()),
+			Data:    false,
 		})
 	}
 
+	if json_map["userId"] == nil ||
+		json_map["roomId"] == nil ||
+		json_map["startTime"] == nil ||
+		json_map["endTime"] == nil ||
+		json_map["description"] == nil {
+		return api.Respond(ctx, &enum.APIResponse{
+			Status:  enum.APIStatus.Forbidden,
+			Message: "Missing param (userId, floorId, startTime, endTime, description)",
+			Data:    false,
+		})
+	}
+
+	jsonString, _ := json.Marshal(json_map)
+	contentErr := json.Unmarshal([]byte(jsonString), &input)
+
+	if contentErr != nil {
+		return api.Respond(ctx, &enum.APIResponse{
+			Status:  enum.APIStatus.Error,
+			Message: fmt.Sprintf("room_controller/RoomController: paramErr %s", contentErr),
+			Data:    false,
+		})
+	}
+
+	var datas []model.Request
+
+	// return api.Respond(ctx, &enum.APIResponse{
+	// 	Status:  enum.APIStatus.Ok,
+	// 	Message: "OK",
+	// 	Data:    []model.Request{input},
+	// })
+
+	createdRequest, err := c.RoomService.Book(&input)
+	if err != nil {
+		api.Respond(ctx, &enum.APIResponse{
+			Status:  enum.APIStatus.Error,
+			Message: fmt.Sprintf("%s: %s", roomErrorPath, err.Error()),
+			Data:    false,
+		})
+	}
+
+	datas = append(datas, *createdRequest)
 	return api.Respond(ctx, &enum.APIResponse{
 		Status:  enum.APIStatus.Ok,
-		Message: "OK",
-		Data:    []model.Room{input},
+		Message: "Created successfully",
+		Data:    datas,
 	})
 }
