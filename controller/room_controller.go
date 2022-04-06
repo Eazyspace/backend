@@ -147,7 +147,7 @@ func (c *RoomController) BookRoom(ctx echo.Context) error {
 		input.Description == "" {
 		return api.Respond(ctx, &enum.APIResponse{
 			Status:  enum.APIStatus.Forbidden,
-			Message: "Missing param (userId, floorId, startTime, endTime, description)",
+			Message: "Missing param (roomId, userId, startTime, endTime, description)",
 			Data:    false,
 		})
 	}
