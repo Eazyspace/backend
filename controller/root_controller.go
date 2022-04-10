@@ -12,6 +12,7 @@ func NewRootController() *RootController {
 
 func (c *RootController) InitRouting(g *echo.Group) error {
 	g.GET("", c.HealthCheck)
+	g.Use()
 	return nil
 }
 
