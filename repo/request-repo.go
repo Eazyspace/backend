@@ -86,3 +86,20 @@ func (repo *RequestRepository) Create(request *model.Request) (*model.Request, e
 	}
 	return request, nil
 }
+
+func (repo *RequestRepository) UpdateStatus(Request *model.Request) (*model.Request, error) {
+	var request *model.Request
+	findRequest := repo.DB.Where("request_id = ?", Request.RequestID).First(&request)
+	if findRequest.Error != nil {
+		return nil, findRequest.Error
+	}
+	if request.Status != 1 {
+		return nil, errors.New("status must be pending to be updated")
+	}
+	result := repo.DB.Model(&request).Updates(
+		&model.Request{Status: Request.Status, ResponseNote: Request.ResponseNote})
+	if result.Error != nil {
+		return nil, result.Error
+	}
+	return Request, nil
+}
