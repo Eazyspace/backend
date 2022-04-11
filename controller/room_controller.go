@@ -24,7 +24,8 @@ func NewRoomController(roomService *service.RoomService) *RoomController {
 func (c *RoomController) InitRouting(g *echo.Group) error {
 	g.GET("", c.GetRoom)
 	g.GET("/test", c.Test)
-	g.POST("", c.CreateRoom)
+	g.POST("/create", c.CreateRoom)
+	g.PUT("/update", c.UpdateRoom)
 	g.POST("/book", c.BookRoom)
 	return nil
 }
@@ -38,11 +39,8 @@ func (c *RoomController) Test(ctx echo.Context) error {
 }
 
 func (c *RoomController) CreateRoom(ctx echo.Context) error {
-
 	var input model.Room
-
 	err := api.GetContent(ctx, &input)
-
 	if err != nil {
 		return api.Respond(ctx, &enum.APIResponse{
 			Status:  enum.APIStatus.Error,
@@ -51,16 +49,19 @@ func (c *RoomController) CreateRoom(ctx echo.Context) error {
 		})
 	}
 
-	var datas []model.Room
-	// if err != nil {
-	// 	api.Respond(ctx, &enum.APIResponse{
-	// 		Status:  enum.APIStatus.Error,
-	// 		Message: fmt.Sprintf("%s: %s", errorPath, err.Error()),
-	// 		Data:    false,
-	// 	})
-	// }
+	if input.FloorID == 0 ||
+		input.RoomName == "" ||
+		input.RoomLength == 0 ||
+		input.RoomWidth == 0 ||
+		input.MaxCapacity == 0 {
+		return api.Respond(ctx, &enum.APIResponse{
+			Status:  enum.APIStatus.Forbidden,
+			Message: "Missing param (floorId, roomName, roomLength, roomWidth, maxCapacity)",
+			Data:    false,
+		})
+	}
 
-	// createdRoom, err := c.RoomService.Create(&model.Room{RoomCode: "TEST-001", RoomName: "Room Test", MaxCapacity: 1000})
+	var datas []model.Room
 	createdRoom, err := c.RoomService.Create(&input)
 	if err != nil {
 		return api.Respond(ctx, &enum.APIResponse{
@@ -72,10 +73,45 @@ func (c *RoomController) CreateRoom(ctx echo.Context) error {
 	datas = append(datas, *createdRoom)
 	return api.Respond(ctx, &enum.APIResponse{
 		Status:  enum.APIStatus.Ok,
-		Message: "Created successfully",
+		Message: "Create room successfully",
 		Data:    datas,
 	})
+}
 
+func (c *RoomController) UpdateRoom(ctx echo.Context) error {
+	var input model.Room
+	err := api.GetContent(ctx, &input)
+	if err != nil {
+		return api.Respond(ctx, &enum.APIResponse{
+			Status:  enum.APIStatus.Error,
+			Message: fmt.Sprintf("%s: %s", roomErrorPath, err.Error()),
+			Data:    false,
+		})
+	}
+
+	if input.RoomID == 0 {
+		return api.Respond(ctx, &enum.APIResponse{
+			Status:  enum.APIStatus.Error,
+			Message: "Missing roomId",
+			Data:    false,
+		})
+	}
+
+	var datas []model.Room
+	updatedRoom, err := c.RoomService.Update(&input)
+	if err != nil {
+		return api.Respond(ctx, &enum.APIResponse{
+			Status:  enum.APIStatus.Error,
+			Message: fmt.Sprintf("%s: %s", roomErrorPath, err.Error()),
+			Data:    false,
+		})
+	}
+	datas = append(datas, *updatedRoom)
+	return api.Respond(ctx, &enum.APIResponse{
+		Status:  enum.APIStatus.Ok,
+		Message: "Update room successfully",
+		Data:    datas,
+	})
 }
 
 // controller handles input & params, (maybe) validate params

@@ -25,6 +25,10 @@ func (s *RoomService) Create(room *model.Room) (*model.Room, error) {
 	return s.roomRepository.Create(room)
 }
 
+func (s *RoomService) Update(room *model.Room) (*model.Room, error) {
+	return s.roomRepository.Update(room)
+}
+
 func (s *RoomService) Book(request *model.Request) (*model.Request, error) {
 	return s.requestRepository.Create(request)
 }
