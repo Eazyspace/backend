@@ -77,6 +77,7 @@ func (repo *RequestRepository) Create(request *model.Request) (*model.Request, e
 	if len(foundRequest) > 0 {
 		return nil, errors.New("current room has been booked at that time")
 	}
+
 	// set request pending state
 	request.Status = 1
 

@@ -50,16 +50,20 @@ func (c *RequestController) CreateRequest(ctx echo.Context) error {
 		})
 	}
 
-	var datas []model.Request
-	// if err != nil {
-	// 	api.Respond(ctx, &enum.APIResponse{
-	// 		Status:  enum.APIStatus.Error,
-	// 		Message: fmt.Sprintf("%s: %s", errorPath, err.Error()),
-	// 		Data:    false,
-	// 	})
-	// }
+	if input.RoomID == 0 ||
+		input.UserID == 0 ||
+		input.StartTime.IsZero() ||
+		input.EndTime.IsZero() ||
+		input.Description == "" {
+		return api.Respond(ctx, &enum.APIResponse{
+			Status:  enum.APIStatus.Forbidden,
+			Message: "Missing param (roomId, userId, startTime, endTime, description)",
+			Data:    false,
+		})
+	}
 
-	// createdRequest, err := c.RequestService.Create(&model.Request{RequestCode: "TEST-001", RequestName: "Request Test", MaxCapacity: 1000})
+	var datas []model.Request
+
 	createdRequest, err := c.RequestService.Create(&input)
 	if err != nil {
 		return api.Respond(ctx, &enum.APIResponse{
