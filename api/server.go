@@ -53,7 +53,8 @@ func (server *APIServer) SetGroup(group string, cf ControllerFunc) {
 func GetContent(c echo.Context, template interface{}) error {
 	return json.Unmarshal([]byte(GetContentText(c)), &template)
 }
-// 
+
+//
 func Respond(context echo.Context, response *enum.APIResponse) error {
 	switch response.Status {
 	case enum.APIStatus.Ok:

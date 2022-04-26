@@ -2,6 +2,8 @@ package model
 
 import (
 	"time"
+
+	"github.com/golang-jwt/jwt"
 )
 
 type Token struct {
@@ -9,4 +11,5 @@ type Token struct {
 	User        User      `gorm:"foreignKey:UserID"`
 	ExpireTime  time.Time `json:"expireTime,omitempty"`
 	TokenString string    `json:"tokenString,omitempty"`
+	jwt.StandardClaims
 }
