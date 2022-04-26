@@ -9,7 +9,6 @@ import (
 	"github.com/Eazyspace/service"
 	"github.com/golang-jwt/jwt"
 	"github.com/labstack/echo/v4"
-	"github.com/labstack/echo/v4/middleware"
 )
 
 var userErrorPath string = "controller/user.go: "
@@ -23,11 +22,7 @@ func NewUserController(userService *service.UserService) *UserController {
 }
 
 func (c *UserController) InitRouting(g *echo.Group) error {
-	config := middleware.JWTConfig{
-		Claims:     &model.Token{},
-		SigningKey: []byte("secret"),
-	}
-	g.GET("", c.GetUser, middleware.JWTWithConfig(config))
+	g.GET("", c.GetUser, api.CheckAuthorization())
 	g.GET("/test", c.Test)
 	g.POST("/login", c.Login)
 	return nil
