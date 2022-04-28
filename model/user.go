@@ -14,6 +14,6 @@ type User struct {
 	Email          string    `json:"email,omitempty"`
 	PhoneNumber    string    `json:"phoneNumber,omitempty"`
 	AcademicID     string    `json:"academicId,omitempty"`
-	Password       string    `json:"active,omitempty"`
+	Password       string    `json:"password,omitempty"`
 	IsActivated    bool      `json:"isActivated,omitempty"`
 }

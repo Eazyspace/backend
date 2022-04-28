@@ -36,6 +36,12 @@ func InitRequestController(db *gorm.DB) *controller.RequestController {
 	return controller.NewRequestController(requestService)
 }
 
+func InitUserController(db *gorm.DB) *controller.UserController {
+	userRepo := repo.NewUserRepo(db)
+	userService := service.NewUserService(userRepo)
+	return controller.NewUserController(userService)
+}
+
 func InitAdminController(db *gorm.DB) *controller.AdminController {
 	requestRepo := repo.NewRequestRepo(db)
 	adminService := service.NewAdminService(requestRepo)
@@ -59,7 +65,7 @@ func main() {
 	// init server
 	server := api.InitServer()
 	godotenv.Load(".env")
-	PORT := ":" + os.Getenv("PORT") //localhost
+	PORT := "localhost:" + os.Getenv("PORT") //localhost
 	DB_URI := os.Getenv("DB_URI")
 	fmt.Printf("%s %s", PORT, DB_URI)
 
@@ -80,6 +86,7 @@ func main() {
 	roomController := InitRoomController(AppDB)
 	floorController := InitFloorController(AppDB)
 	requestController := InitRequestController(AppDB)
+	userController := InitUserController(AppDB)
 	adminController := InitAdminController(AppDB)
 
 	// Create groups
@@ -88,6 +95,7 @@ func main() {
 	server.SetGroup("/floor", floorController.InitRouting)
 	server.SetGroup("/request", requestController.InitRouting)
 	server.SetGroup("/admin", adminController.InitRouting)
+	server.SetGroup("/user", userController.InitRouting)
 
 	// InitRoomRouting(roomController, *server)
 	server.Start(PORT)

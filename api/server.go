@@ -6,6 +6,7 @@ import (
 	"net/http"
 
 	"github.com/Eazyspace/enum"
+	"github.com/Eazyspace/model"
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
 )
@@ -53,7 +54,7 @@ func (server *APIServer) SetGroup(group string, cf ControllerFunc) {
 func GetContent(c echo.Context, template interface{}) error {
 	return json.Unmarshal([]byte(GetContentText(c)), &template)
 }
-// 
+
 func Respond(context echo.Context, response *enum.APIResponse) error {
 	switch response.Status {
 	case enum.APIStatus.Ok:
@@ -85,4 +86,12 @@ func GetContentText(c echo.Context) string {
 func GetHeaderText(c echo.Context) string {
 	token := c.Request().Header["token"][0]
 	return token
+}
+
+func CheckAuthorization() echo.MiddlewareFunc {
+	config := middleware.JWTConfig{
+		Claims:     &model.Token{},
+		SigningKey: []byte("secret"),
+	}
+	return middleware.JWTWithConfig(config)
 }
