@@ -38,6 +38,18 @@ func (repo *RequestRepository) Read(Request *model.Request) ([]model.Request, er
 	return foundRequest, nil
 }
 
+func (repo *RequestRepository) ReadWithFloorId(floorId int, Request *model.Request) ([]model.Request, error) {
+	var foundRequest []model.Request
+
+	// select * from Request where Request.Request_code = Request.Request_code
+	result := repo.DB.Table("requests").Joins("JOIN rooms on rooms.room_id = requests.room_id").Where("rooms.floor_id = ?", floorId).Where(Request).Find(&foundRequest)
+
+	if result.Error != nil {
+		return foundRequest, result.Error
+	}
+	return foundRequest, nil
+}
+
 func (repo *RequestRepository) Create(request *model.Request) (*model.Request, error) {
 	// check userId
 	var foundUser []model.User

@@ -53,7 +53,7 @@ func (s *UserService) Login(user *model.User) (*string, error) {
 	// Set custom claims
 	claims := &model.Token{
 		UserID:         foundUsers[0].UserID,
-		StandardClaims: jwt.StandardClaims{ExpiresAt: time.Now().Add(time.Hour * 72).Unix()},
+		StandardClaims: jwt.StandardClaims{ExpiresAt: time.Now().Add(time.Hour * 24).Unix()},
 	}
 	// Create token with claims
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
