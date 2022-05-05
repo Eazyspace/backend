@@ -99,7 +99,7 @@ func (c *RequestController) GetRequest(ctx echo.Context) error {
 		})
 	}
 
-	datas, err := c.RequestService.Read(input)
+	datas, err := c.RequestService.Read(&input)
 
 	if err != nil {
 		api.Respond(ctx, &enum.APIResponse{

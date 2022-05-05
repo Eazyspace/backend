@@ -16,11 +16,11 @@ func NewRequestService(roomRepository *repo.RoomRepository,
 	return &RequestService{roomRepository: roomRepository, requestRepository: requestRepository}
 }
 
-func (s *RequestService) Read(input map[string]interface{}) ([]model.Request, error) {
+func (s *RequestService) Read(input *map[string]interface{}) ([]model.Request, error) {
 	var request model.Request
 
 	mapstructure.Decode(input, &request)
-	if val, ok := input["floorId"]; ok {
+	if val, ok := (*input)["floorId"]; ok {
 		if floorId, check := val.(float64); check {
 			return s.requestRepository.ReadWithFloorId(int(floorId), &request)
 		}
