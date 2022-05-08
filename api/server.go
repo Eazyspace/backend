@@ -4,11 +4,9 @@ import (
 	"encoding/json"
 	"io/ioutil"
 	"net/http"
-	"strings"
 
 	"github.com/Eazyspace/enum"
 	"github.com/Eazyspace/model"
-	"github.com/golang-jwt/jwt"
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
 )
@@ -96,47 +94,4 @@ func CheckAuthorization() echo.MiddlewareFunc {
 		SigningKey: []byte("secret"),
 	}
 	return middleware.JWTWithConfig(config)
-}
-
-func CheckAdmin(next echo.HandlerFunc) echo.HandlerFunc {
-	return func(c echo.Context) error {
-
-		token := c.Request().Header.Get("Authorization")
-		if len(token) == 0 {
-			return Respond(c, &enum.APIResponse{
-				Status:  enum.APIStatus.Unauthorized,
-				Message: "A token is required",
-			})
-		}
-		if strings.Contains(token, "Bearer ") {
-			token = strings.SplitAfter(token, "Bearer ")[1]
-		}
-
-		jwtToken, err := jwt.Parse(token,
-			func(t *jwt.Token) (interface{}, error) {
-				return []byte("secret"), nil
-			})
-
-		if err != nil {
-			return Respond(c, &enum.APIResponse{
-				Status:  enum.APIStatus.Unauthorized,
-				Data:    err,
-				Message: "Invalid token",
-			})
-		}
-
-		var tokenObject model.Token
-		stringified, _ := json.Marshal(jwtToken.Claims)
-
-		json.Unmarshal([]byte(stringified), &tokenObject)
-
-		if tokenObject.Role != 3 {
-			return Respond(c, &enum.APIResponse{
-				Status:  enum.APIStatus.Unauthorized,
-				Message: "Unauthorized user",
-			})
-		}
-
-		return next(c)
-	}
 }

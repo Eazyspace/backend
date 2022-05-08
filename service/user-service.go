@@ -24,21 +24,6 @@ func (s *UserService) Read(user *model.User) ([]model.User, error) {
 }
 
 func (s *UserService) Create(user *model.User) (*model.User, error) {
-
-	if len(user.AcademicID) == 0 || len(user.Password) == 0 {
-		return nil, errors.New("Missing academicId or password")
-	}
-
-	if user.OrganizationID == 0 {
-		user.OrganizationID = 1
-	}
-	user.Role = 1
-	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(user.Password), bcrypt.DefaultCost)
-	if err != nil {
-		return nil, err
-	}
-	user.Password = string(hashedPassword)
-
 	return s.userRepository.Create(user)
 }
 
@@ -59,19 +44,17 @@ func (s *UserService) Login(user *model.User) (*string, error) {
 		return nil, echo.ErrUnauthorized
 	}
 	if len(foundUsers) == 0 {
-		return nil, errors.New("invalid username")
+		return nil, errors.New("Invalid username")
 	}
 	if bcrypt.CompareHashAndPassword([]byte(foundUsers[0].Password), []byte(password)) != nil {
-		return nil, errors.New("invalid password")
+		return nil, errors.New("Invalid password")
 	}
 
 	// Set custom claims
 	claims := &model.Token{
 		UserID:         foundUsers[0].UserID,
-		Role:           foundUsers[0].Role,
 		StandardClaims: jwt.StandardClaims{ExpiresAt: time.Now().Add(time.Hour * 72).Unix()},
 	}
-
 	// Create token with claims
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
 	// Generate encoded token and send it as response.
