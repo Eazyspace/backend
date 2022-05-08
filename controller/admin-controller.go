@@ -22,9 +22,11 @@ func NewAdminController(adminService *service.AdminService) *AdminController {
 }
 
 func (c *AdminController) InitRouting(g *echo.Group) error {
+	g.Use(api.CheckAdmin)
 	g.GET("/test", c.Test)
 	g.POST("/accept-request", c.AcceptRequest)
 	g.POST("/decline-request", c.DeclineRequest)
+	g.POST("/create-account", c.CreateAccount)
 	return nil
 }
 
@@ -33,6 +35,46 @@ func (c *AdminController) Test(ctx echo.Context) error {
 		Status:  enum.APIStatus.Ok,
 		Data:    false,
 		Message: "Admin: OK",
+	})
+}
+
+func (c *AdminController) CreateAccount(ctx echo.Context) error {
+	var user *model.User
+
+	err := api.GetContent(ctx, &user)
+
+	if err != nil {
+		return api.Respond(ctx, &enum.APIResponse{
+			Status:  enum.APIStatus.Error,
+			Message: fmt.Sprintf("%s: %s", adminErrorPath, err.Error()),
+			Data:    false,
+		})
+	}
+
+	data, err := c.AdminService.Create(user)
+	if err != nil {
+		return api.Respond(ctx, &enum.APIResponse{
+			Status:  enum.APIStatus.Invalid,
+			Message: fmt.Sprintf("admin_controller/AdminController: %s", err),
+		})
+	}
+
+	result, err := json.Marshal(data)
+
+	if err != nil {
+		return api.Respond(ctx, &enum.APIResponse{
+			Status:  enum.APIStatus.Error,
+			Message: fmt.Sprintf("%s: %s", adminErrorPath, err.Error()),
+			Data:    false,
+		})
+	}
+	m := make(map[string]interface{})
+	json.Unmarshal(result, &m)
+	delete(m, "password")
+
+	return api.Respond(ctx, &enum.APIResponse{
+		Status: enum.APIStatus.Ok,
+		Data:   m,
 	})
 }
 
@@ -46,7 +88,7 @@ func (c *AdminController) AcceptRequest(ctx echo.Context) error {
 	if err != nil {
 		return api.Respond(ctx, &enum.APIResponse{
 			Status:  enum.APIStatus.Error,
-			Message: fmt.Sprintf("admin_controller/AdminController: %s", err),
+			Message: fmt.Sprintf("%s: %s", adminErrorPath, err),
 		})
 	}
 	return api.Respond(ctx, &enum.APIResponse{
@@ -66,7 +108,7 @@ func (c *AdminController) DeclineRequest(ctx echo.Context) error {
 	if err != nil {
 		return api.Respond(ctx, &enum.APIResponse{
 			Status:  enum.APIStatus.Invalid,
-			Message: fmt.Sprintf("admin_controller/AdminController: err %s", err),
+			Message: fmt.Sprintf("%s: %s", adminErrorPath, err),
 		})
 	}
 	return api.Respond(ctx, &enum.APIResponse{
