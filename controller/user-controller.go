@@ -1,6 +1,7 @@
 package controller
 
 import (
+	"encoding/json"
 	"fmt"
 
 	"github.com/Eazyspace/api"
@@ -25,6 +26,7 @@ func (c *UserController) InitRouting(g *echo.Group) error {
 	g.GET("", c.GetUser, api.CheckAuthorization())
 	g.GET("/test", c.Test)
 	g.POST("/login", c.Login)
+	g.POST("/sign-up", c.SignUp)
 	return nil
 }
 
@@ -45,17 +47,31 @@ func (c *UserController) GetUser(ctx echo.Context) error {
 
 	var datas []model.User
 	datas, errString := c.UserService.Read(&input)
+
 	if errString != nil {
 		return api.Respond(ctx, &enum.APIResponse{
 			Status:  enum.APIStatus.Error,
-			Message: fmt.Sprintf("%s: %s", roomErrorPath, errString),
+			Message: fmt.Sprintf("%s: %s", userErrorPath, errString),
 			Data:    false,
 		})
 	}
 
+	result, err := json.Marshal(datas[0])
+
+	if err != nil {
+		return api.Respond(ctx, &enum.APIResponse{
+			Status:  enum.APIStatus.Error,
+			Message: fmt.Sprintf("%s: %s", userErrorPath, err.Error()),
+			Data:    false,
+		})
+	}
+	m := make(map[string]interface{})
+	json.Unmarshal(result, &m)
+	delete(m, "password")
+
 	return api.Respond(ctx, &enum.APIResponse{
 		Status:  enum.APIStatus.Ok,
-		Data:    datas,
+		Data:    m,
 		Message: "User: OK",
 	})
 }
@@ -97,5 +113,45 @@ func (c *UserController) Login(ctx echo.Context) error {
 		Data: echo.Map{
 			"token": tokenString,
 		},
+	})
+}
+
+func (c *UserController) SignUp(ctx echo.Context) error {
+	var user *model.User
+
+	err := api.GetContent(ctx, &user)
+
+	if err != nil {
+		return api.Respond(ctx, &enum.APIResponse{
+			Status:  enum.APIStatus.Error,
+			Message: fmt.Sprintf("%s: %s", userErrorPath, err.Error()),
+			Data:    false,
+		})
+	}
+
+	data, err := c.UserService.Create(user)
+	if err != nil {
+		return api.Respond(ctx, &enum.APIResponse{
+			Status:  enum.APIStatus.Invalid,
+			Message: fmt.Sprintf("%s: %s", userErrorPath, err),
+		})
+	}
+
+	result, err := json.Marshal(data)
+
+	if err != nil {
+		return api.Respond(ctx, &enum.APIResponse{
+			Status:  enum.APIStatus.Error,
+			Message: fmt.Sprintf("%s: %s", userErrorPath, err.Error()),
+			Data:    false,
+		})
+	}
+	m := make(map[string]interface{})
+	json.Unmarshal(result, &m)
+	delete(m, "password")
+
+	return api.Respond(ctx, &enum.APIResponse{
+		Status: enum.APIStatus.Ok,
+		Data:   m,
 	})
 }

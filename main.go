@@ -44,7 +44,8 @@ func InitUserController(db *gorm.DB) *controller.UserController {
 
 func InitAdminController(db *gorm.DB) *controller.AdminController {
 	requestRepo := repo.NewRequestRepo(db)
-	adminService := service.NewAdminService(requestRepo)
+	userRepo := repo.NewUserRepo(db)
+	adminService := service.NewAdminService(requestRepo, userRepo)
 	return controller.NewAdminController(adminService)
 }
 
