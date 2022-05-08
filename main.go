@@ -65,7 +65,7 @@ func main() {
 	// init server
 	server := api.InitServer()
 	godotenv.Load(".env")
-	PORT := "localhost:" + os.Getenv("PORT") //localhost
+	PORT := ":" + os.Getenv("PORT") //localhost
 	DB_URI := os.Getenv("DB_URI")
 	fmt.Printf("%s %s", PORT, DB_URI)
 
