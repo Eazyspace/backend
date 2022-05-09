@@ -27,6 +27,7 @@ func (c *UserController) InitRouting(g *echo.Group) error {
 	g.GET("/test", c.Test)
 	g.POST("/login", c.Login)
 	g.POST("/sign-up", c.SignUp)
+	g.POST("/set-avatar", c.SetAvatar, api.CheckAuthorization())
 	return nil
 }
 
@@ -153,5 +154,59 @@ func (c *UserController) SignUp(ctx echo.Context) error {
 	return api.Respond(ctx, &enum.APIResponse{
 		Status: enum.APIStatus.Ok,
 		Data:   m,
+	})
+}
+
+func (c *UserController) SetAvatar(ctx echo.Context) error {
+	var input model.User
+
+	user := ctx.Get("user").(*jwt.Token)
+	claims := user.Claims.(*model.Token)
+
+	err := api.GetContent(ctx, &input)
+	if err != nil {
+		return api.Respond(ctx, &enum.APIResponse{
+			Status:  enum.APIStatus.Error,
+			Message: fmt.Sprintf("%s: %s", userErrorPath, err.Error()),
+			Data:    false,
+		})
+	}
+	if input.Avatar == "" {
+		return api.Respond(ctx, &enum.APIResponse{
+			Status:  enum.APIStatus.Unauthorized,
+			Message: "Missing avatar",
+			Data:    false,
+		})
+	}
+
+	input.UserID = claims.UserID
+
+	datas, errString := c.UserService.SetAvatar(&input)
+
+	if errString != nil {
+		return api.Respond(ctx, &enum.APIResponse{
+			Status:  enum.APIStatus.Error,
+			Message: fmt.Sprintf("%s: %s", userErrorPath, errString),
+			Data:    false,
+		})
+	}
+
+	result, err := json.Marshal(datas)
+
+	if err != nil {
+		return api.Respond(ctx, &enum.APIResponse{
+			Status:  enum.APIStatus.Error,
+			Message: fmt.Sprintf("%s: %s", userErrorPath, err.Error()),
+			Data:    false,
+		})
+	}
+	m := make(map[string]interface{})
+	json.Unmarshal(result, &m)
+	delete(m, "password")
+
+	return api.Respond(ctx, &enum.APIResponse{
+		Status:  enum.APIStatus.Ok,
+		Data:    m,
+		Message: "User: OK",
 	})
 }

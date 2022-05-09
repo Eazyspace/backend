@@ -16,5 +16,6 @@ type User struct {
 	PhoneNumber    string       `json:"phoneNumber,omitempty"`
 	AcademicID     string       `json:"academicId,omitempty" gorm:"unique"`
 	Password       string       `json:"password,omitempty"`
+	Avatar         string       `json:"avatar,omitempty"`
 	IsActivated    bool         `json:"isActivated,omitempty"`
 }

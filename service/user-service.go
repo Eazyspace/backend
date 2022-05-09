@@ -82,3 +82,7 @@ func (s *UserService) Login(user *model.User) (*string, error) {
 
 	return &tokenString, nil
 }
+
+func (s *UserService) SetAvatar(user *model.User) (*model.User, error) {
+	return s.userRepository.SetAvatar(user)
+}

@@ -180,10 +180,11 @@ func (c *RoomController) BookRoom(ctx echo.Context) error {
 		input.UserID == 0 ||
 		input.StartTime.IsZero() ||
 		input.EndTime.IsZero() ||
-		input.Description == "" {
+		input.Description == "" ||
+		input.EventName == "" {
 		return api.Respond(ctx, &enum.APIResponse{
 			Status:  enum.APIStatus.Forbidden,
-			Message: "Missing param (roomId, userId, startTime, endTime, description)",
+			Message: "Missing param (roomId, userId, startTime, endTime, description, eventName)",
 			Data:    false,
 		})
 	}
