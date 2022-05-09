@@ -14,6 +14,7 @@ type Request struct {
 	EndTime        time.Time `json:"endTime,omitempty"`
 	NumberOfPeople int64     `json:"numberOfPeople,omitempty"`
 	Description    string    `json:"description"`
+	EventName      string    `json:"eventName"`
 	Status         int64     `json:"status"`
 	ResponseNote   string    `json:"responseNote,omitempty"`
 }

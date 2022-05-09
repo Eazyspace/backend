@@ -1,6 +1,8 @@
 package repo
 
 import (
+	"errors"
+
 	"github.com/Eazyspace/model"
 	"gorm.io/gorm"
 )
@@ -51,4 +53,27 @@ func (repo *UserRepository) Create(user *model.User) (*model.User, error) {
 		return nil, result.Error
 	}
 	return user, nil
+}
+
+func (repo *UserRepository) SetAvatar(user *model.User) (*model.User, error) {
+	var foundUser []model.User
+
+	// check user
+	resultUser := repo.DB.Limit(1).Where(&model.User{UserID: user.UserID}).Find(&foundUser)
+	if resultUser.Error != nil {
+		return nil, resultUser.Error
+	}
+	if len(foundUser) == 0 {
+		return nil, errors.New("userId not found")
+	}
+
+	// set avatar
+	foundUser[0].Avatar = user.Avatar
+
+	// Update changes
+	result := repo.DB.Save(&foundUser[0])
+	if result.Error != nil {
+		return nil, result.Error
+	}
+	return &foundUser[0], nil
 }
