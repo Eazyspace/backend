@@ -83,7 +83,6 @@ func (c *RequestController) CreateRequest(ctx echo.Context) error {
 
 // controller handles input & params, (maybe) validate params
 func (c *RequestController) GetRequest(ctx echo.Context) error {
-	var input model.Request
 	var datas []model.Request
 
 	param := ctx.QueryParams().Get("q")
@@ -91,20 +90,14 @@ func (c *RequestController) GetRequest(ctx echo.Context) error {
 		param = "{}"
 	}
 
-	paramErr := json.Unmarshal([]byte(param), &input)
-
-	if paramErr != nil {
+	input := make(map[string]interface{})
+	errMap := json.Unmarshal([]byte(param), &input)
+	if errMap != nil {
 		return api.Respond(ctx, &enum.APIResponse{
 			Status:  enum.APIStatus.Error,
-			Message: fmt.Sprintf("request_controller/RequestController: paramErr %s", paramErr),
+			Message: fmt.Sprintf("request_controller/RequestController: paramErr %s", errMap),
 		})
 	}
-
-	// return api.Respond(ctx, &enum.APIResponse{
-	// 	Status:  enum.APIStatus.Ok,
-	// 	Message: "OK",
-	// 	Data:    []model.Request{input},
-	// })
 
 	datas, err := c.RequestService.Read(&input)
 
