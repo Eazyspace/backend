@@ -116,3 +116,12 @@ func (repo *RequestRepository) UpdateStatus(Request *model.Request) (*model.Requ
 	}
 	return Request, nil
 }
+
+func (repo *RequestRepository) CheckIn(Request *model.Request) (bool, error) {
+	var result = repo.DB.Where(Request).Updates(&model.Request{Status: 4})
+	if result.Error != nil {
+		return false, result.Error
+	}
+
+	return true, nil
+}
