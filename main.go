@@ -32,7 +32,8 @@ func InitFloorController(db *gorm.DB) *controller.FloorController {
 func InitRequestController(db *gorm.DB) *controller.RequestController {
 	roomRepo := repo.NewRoomRepo(db)
 	requestRepo := repo.NewRequestRepo(db)
-	requestService := service.NewRequestService(roomRepo, requestRepo)
+	userRepo := repo.NewUserRepo(db)
+	requestService := service.NewRequestService(roomRepo, requestRepo, userRepo)
 	return controller.NewRequestController(requestService)
 }
 

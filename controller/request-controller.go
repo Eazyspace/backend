@@ -3,11 +3,14 @@ package controller
 import (
 	"encoding/json"
 	"fmt"
+	"strconv"
+	"strings"
 
 	"github.com/Eazyspace/api"
 	"github.com/Eazyspace/enum"
 	"github.com/Eazyspace/model"
 	"github.com/Eazyspace/service"
+	"github.com/golang-jwt/jwt"
 	"github.com/labstack/echo/v4"
 )
 
@@ -25,6 +28,7 @@ func (c *RequestController) InitRouting(g *echo.Group) error {
 	g.GET("", c.GetRequest)
 	g.GET("/test", c.Test)
 	g.POST("", c.CreateRequest)
+	g.POST("/check-in", c.CheckIn)
 	return nil
 }
 
@@ -120,5 +124,72 @@ func (c *RequestController) GetRequest(ctx echo.Context) error {
 		Status:  enum.APIStatus.Ok,
 		Message: "OK",
 		Data:    datas,
+	})
+}
+
+func (c *RequestController) CheckIn(ctx echo.Context) error {
+	token := ctx.Request().Header.Get("Authorization")
+	if len(token) == 0 {
+		return api.Respond(ctx, &enum.APIResponse{
+			Status:  enum.APIStatus.Unauthorized,
+			Message: "A token is required",
+		})
+	}
+	if strings.Contains(token, "Bearer ") {
+		token = strings.SplitAfter(token, "Bearer ")[1]
+	}
+
+	jwtToken, err := jwt.Parse(token,
+		func(t *jwt.Token) (interface{}, error) {
+			return []byte("secret"), nil
+		})
+
+	if err != nil {
+		return api.Respond(ctx, &enum.APIResponse{
+			Status:  enum.APIStatus.Unauthorized,
+			Data:    err,
+			Message: "Invalid token",
+		})
+	}
+
+	var tokenObject model.Token
+	stringified, _ := json.Marshal(jwtToken.Claims)
+
+	json.Unmarshal([]byte(stringified), &tokenObject)
+
+	var input model.Request
+
+	err = api.GetContent(ctx, &input)
+
+	if err != nil {
+		return api.Respond(ctx, &enum.APIResponse{
+			Status:  enum.APIStatus.Error,
+			Message: fmt.Sprintf("request_controller/RequestController: paramErr %s", err),
+		})
+	}
+
+	result, err := c.RequestService.CheckIn(&input, tokenObject.UserID)
+
+	if err != nil {
+		if err.Error() == "unauthorized" {
+			return api.Respond(ctx, &enum.APIResponse{
+				Status:  enum.APIStatus.Unauthorized,
+				Message: "Please use the account that made this request to checkin",
+			})
+		}
+		if err.Error() == "not found" {
+			return api.Respond(ctx, &enum.APIResponse{
+				Status:  enum.APIStatus.Unauthorized,
+				Message: "Request not found",
+			})
+		}
+		return api.Respond(ctx, &enum.APIResponse{
+			Status:  enum.APIStatus.Error,
+			Message: fmt.Sprintf("request_controller/RequestController: paramErr %s", err),
+		})
+	}
+	return api.Respond(ctx, &enum.APIResponse{
+		Status:  enum.APIStatus.Ok,
+		Message: strconv.FormatBool(result),
 	})
 }
